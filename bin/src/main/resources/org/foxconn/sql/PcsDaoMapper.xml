@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="org.foxconn.dao.PcsDao">
+
+	<resultMap type="String" id="file">
+		<result column="FileName" property="FileName" jdbcType="VARCHAR"
+			javaType="String" />
+	</resultMap>
+
+	<resultMap type="org.foxconn.entity.PcsResult"
+		id="testData">
+		<result column="writeline" property="writeline" jdbcType="VARCHAR"
+			javaType="String" />
+		<result column="ssn" property="ssn" jdbcType="VARCHAR"
+			javaType="String" />
+		<result column="shiporderno" property="shiporderno" jdbcType="VARCHAR"
+			javaType="String" />
+		<result column="custpartno" property="custpartno" jdbcType="VARCHAR"
+			javaType="String" />
+	</resultMap>
+
+	<select id="findHPAll" parameterType="map" resultMap="file,testData"
+		statementType="CALLABLE">
+
+		{call
+		GenerateDataOfDatafeed_Seagate_HP_PCS_File
+		(#{strStartDate,mode=IN,jdbcType=VARCHAR},
+		#{strEndDate,mode=IN,jdbcType=VARCHAR},
+		#{strFactoryID,mode=IN,jdbcType=VARCHAR},
+		#{BAuto,mode=IN,jdbcType=INTEGER})
+		}
+
+	</select>
+
+	<select id="findOtherAll" parameterType="map" resultMap="file,testData"
+		statementType="CALLABLE">
+
+		{call
+		GenerateDataOfDatafeed_Seagate_All_Product_PCS_File
+		(#{strStartDate,mode=IN,jdbcType=VARCHAR},
+		#{strEndDate,mode=IN,jdbcType=VARCHAR},
+		#{strFactoryID,mode=IN,jdbcType=VARCHAR},
+		#{BAuto,mode=IN,jdbcType=INTEGER})
+		}
+
+	</select>
+	<update id="updateSSNStatus" parameterType="map">
+		UPDATE mfworkstatus SET autoed=0
+		WHERE  sysserialno in (${'\''+sns+'\''})
+				OR sysserialno  IN (SELECT	SysSerialNo 
+									FROM	mfsysprodlink 
+									WHERE	ProductID in (${'\''+sns+'\''})
+									)
+	</update>
+
+</mapper>       
