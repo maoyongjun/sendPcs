@@ -86,9 +86,13 @@ public class Run {
 			String uploadMsg = "false";
 			String uploadMsgBack = "false";
 			String strSSNS = "";
+			String ip="10.67.49.9";
+			String username ="Seagate";
+			String password="Seagate";
+			String path="/REPORT/TJ/PCS/";
 			try {
-				uploadMsg = UploadFile.uploadFile("10.67.49.9", 21, "Seagate", "Seagate"
-						, "/REPORT/TJ/PCS/",
+				uploadMsg = UploadFile.uploadFile(ip, 21, username, password
+						,path,
 						filename, inputStream);
 				// uploadMsg = UploadFile.uploadFile("10.67.70.95",
 				// 21,"it","8293584", "/pcs1/",filename,inputStream );
@@ -110,11 +114,11 @@ public class Run {
 				pcsDao.updateSSNStatus(ssnMap);
 				LogUtil.writeXmlToLocalDisk("upload ftp failed,rollback pcs status,It will be upload again tomorrow"
 						+ System.getProperty("line.separator"));
-				String deleteFlag = UploadFile.deleteFile("134.204.240.44", 21, "foxconn_tianjin",
-						"2496w29286456597198T", "/", filename);
+				String deleteFlag = UploadFile.deleteFile(ip, 21, username,
+						password, "/", filename);
 				System.out.println(deleteFlag);
 				LogUtil.writeXmlToLocalDisk(
-						"134.204.240.44:delete," + deleteFlag + System.getProperty("line.separator"));
+						ip+":delete," + deleteFlag + System.getProperty("line.separator"));
 			}
 
 			if (uploadMsgBack.indexOf("false") != -1) {// 如果上传ftp失败，改回状态
@@ -126,7 +130,7 @@ public class Run {
 					"upload to ftp:134.204.240.44" + uploadMsg + System.getProperty("line.separator"));
 			LogUtil.writeXmlToLocalDisk(
 					"upload to ftp:10.67.70.95" + uploadMsgBack + System.getProperty("line.separator"));
-			System.out.println("upload to ftp:134.204.240.44" + uploadMsg);
+			System.out.println("upload to ftp:"+ip + uploadMsg);
 			System.out.println("upload to ftp:10.67.70.95" + uploadMsgBack);
 		}
 		LogUtil.writeXmlToLocalDisk(
