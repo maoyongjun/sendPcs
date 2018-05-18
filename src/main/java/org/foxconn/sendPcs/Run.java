@@ -127,7 +127,7 @@ public class Run {
 						"10.67.70.95:delete," + deleteFlagBackup + System.getProperty("line.separator"));
 			}
 			LogUtil.writeXmlToLocalDisk(
-					"upload to ftp:134.204.240.44" + uploadMsg + System.getProperty("line.separator"));
+					"upload to ftp:"+ip + uploadMsg + System.getProperty("line.separator"));
 			LogUtil.writeXmlToLocalDisk(
 					"upload to ftp:10.67.70.95" + uploadMsgBack + System.getProperty("line.separator"));
 			System.out.println("upload to ftp:"+ip + uploadMsg);
