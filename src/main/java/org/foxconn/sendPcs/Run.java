@@ -86,7 +86,7 @@ public class Run {
 			String uploadMsg = "false";
 			String uploadMsgBack = "false";
 			String strSSNS = "";
-			String ip="10.67.49.9";
+			String ip="10.67.49.8";
 			String username ="Seagate";
 			String password="Seagate";
 			String path="/REPORT/TJ/PCS/";
