@@ -1,12 +1,16 @@
 package org.foxconn.sendPcs;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
+import org.foxconn.config.Config;
 import org.foxconn.dao.PcsDao;
 import org.foxconn.entity.PcsResult;
 import org.foxconn.util.ContextUtil;
@@ -16,9 +20,49 @@ import org.foxconn.util.UploadFile;
 import org.springframework.dao.DataAccessException;
 
 public class Run {
+	Config config = new Config();
+	
+	private void initProp() throws IOException{
+		File file = new File("");
+		Properties prop = new Properties();  
+        FileInputStream fis = new FileInputStream(file.getAbsolutePath()+"/"+"config.properties");  
+        prop.load(fis); 
+    	System.out.println(file.getAbsolutePath());
+		System.out.println(file.getCanonicalPath());
+        config.setIp((String)(prop.get("ip")));
+        config.setPort(Integer.parseInt((String)prop.get("port")));
+        config.setPath((String)(prop.get("path")));
+        config.setUsername((String)(prop.get("username")));
+        config.setPassword((String)(prop.get("password")));
+        
+        config.setBackupIP((String)(prop.get("backupIP")));
+        config.setBackupPort(Integer.parseInt((String)prop.get("backupPort")));
+        config.setBackuppath((String)(prop.get("backuppath")));
+        config.setBackupusername((String)(prop.get("backupusername")));
+        config.setBackuppassword((String)(prop.get("backuppassword")));
+        config.setBackupLocalPath((String)(prop.get("backupLocalPath")));
+        
+        
+        String ip=config.getIp();
+		int port = config.getPort();
+		String username =config.getUsername();
+		String password=config.getPassword();
+		String path=config.getPath();
+		
+		String backupIP=config.getBackupIP();
+		int backupPort=config.getBackupPort();
+		String backupusername=config.getBackupusername();
+		String backuppassword=config.getBackuppassword();
+		String backuppath=config.getBackuppath();
+		String backupLocalPath = config.getBackupLocalPath();
+		System.out.println("ip"+ip+"port:"+port+",username:"+username+",password:"+password+",path:"+path);
+		System.out.println("ip"+backupIP+"port:"+backupPort+",username:"+backupusername+",password:"+backuppassword+",path:"+backuppath);
+		System.out.println("backupLocalPath:"+ backupLocalPath);
+	}
 	public static void main(String[] args) {
 		Run run = new Run();
 		try {
+			run.initProp();
 			run.createHP();
 			run.createOther();
 		} catch (Exception e) {
@@ -79,29 +123,35 @@ public class Run {
 		// String ftp1Msg =msg.toString();
 		// String ftp2Msg = ftp1Msg;
 		if (!"".equals(msg.toString())) {
-			LogUtil.writeString("D:\\seagatePcs\\backup\\", filename, msg.toString());
+			String backupLocalPath = config.getBackupLocalPath();
+			LogUtil.writeString(backupLocalPath, filename, msg.toString());
 			LogUtil.writeXmlToLocalDisk("has backuped to local disk" + System.getProperty("line.separator"));
-			System.out.println("backup to local disk:" + "D:\\seagatePcs\\backup" + filename);
+			System.out.println("backup to local disk:" + backupLocalPath + filename);
 			InputStream inputStream = new ByteArrayInputStream(msg.toString().getBytes("UTF-8"));
 			String uploadMsg = "false";
 			String uploadMsgBack = "false";
 			String strSSNS = "";
-			String ip="10.67.49.8";
-			String username ="Seagate";
-			String password="Seagate";
-			String path="/REPORT/TJ/PCS/";
+			String ip=config.getIp();
+			int port = config.getPort();
+			String username =config.getUsername();
+			String password=config.getPassword();
+			String path=config.getPath();
+			
+			String backupIP=config.getBackupIP();
+			int backupPort=config.getBackupPort();
+			String backupusername=config.getBackupusername();
+			String backuppassword=config.getBackuppassword();
+			String backuppath=config.getBackuppath();
 			try {
-				uploadMsg = UploadFile.uploadFile(ip, 21, username, password
+				uploadMsg = UploadFile.uploadFile(ip, port, username, password
 						,path,
 						filename, inputStream);
-				// uploadMsg = UploadFile.uploadFile("10.67.70.95",
-				// 21,"it","8293584", "/pcs1/",filename,inputStream );
 			} catch (Exception e) {
 				uploadMsg = uploadMsg + "-->" + e.getMessage();
 			}
 			InputStream inputStream2 = new ByteArrayInputStream(msg.toString().getBytes("UTF-8"));
 			try {
-				uploadMsgBack = UploadFile.uploadFile("10.67.70.95", 21, "it", "8293584", "/pcs/", filename,
+				uploadMsgBack = UploadFile.uploadFile(backupIP, backupPort, backupusername, backuppassword, backuppath, filename,
 						inputStream2);
 			} catch (Exception e) {
 				uploadMsgBack = uploadMsgBack + "-->" + e.getMessage();
@@ -122,16 +172,16 @@ public class Run {
 			}
 
 			if (uploadMsgBack.indexOf("false") != -1) {// 如果上传ftp失败，改回状态
-				String deleteFlagBackup = UploadFile.deleteFile("10.67.70.95", 21, "it", "8293584", "/pcs/", filename);
+				String deleteFlagBackup = UploadFile.deleteFile(backupIP, backupPort, backupusername, backuppassword, backuppath, filename);
 				LogUtil.writeXmlToLocalDisk(
-						"10.67.70.95:delete," + deleteFlagBackup + System.getProperty("line.separator"));
+						backupIP+":delete," + deleteFlagBackup + System.getProperty("line.separator"));
 			}
 			LogUtil.writeXmlToLocalDisk(
 					"upload to ftp:"+ip + uploadMsg + System.getProperty("line.separator"));
 			LogUtil.writeXmlToLocalDisk(
-					"upload to ftp:10.67.70.95" + uploadMsgBack + System.getProperty("line.separator"));
+					"upload to ftp:"+backupIP + uploadMsgBack + System.getProperty("line.separator"));
 			System.out.println("upload to ftp:"+ip + uploadMsg);
-			System.out.println("upload to ftp:10.67.70.95" + uploadMsgBack);
+			System.out.println("upload to ftp:"+backupIP + uploadMsgBack);
 		}
 		LogUtil.writeXmlToLocalDisk(
 				"success-->create,back up  and upload pcs file ok:size" + resultList.size() + ",filename:" + filename
