@@ -19,29 +19,14 @@
 		<result column="custpartno" property="custpartno" jdbcType="VARCHAR"
 			javaType="String" />
 	</resultMap>
-
-	<select id="findHPAll" parameterType="map" resultMap="file,testData"
+	
+	<select id="findAll" parameterType="map" resultMap="file,testData"
 		statementType="CALLABLE">
 
 		{call
-		GenerateDataOfDatafeed_Seagate_HP_PCS_File
-		(#{strStartDate,mode=IN,jdbcType=VARCHAR},
-		#{strEndDate,mode=IN,jdbcType=VARCHAR},
-		#{strFactoryID,mode=IN,jdbcType=VARCHAR},
-		#{BAuto,mode=IN,jdbcType=INTEGER})
-		}
-
-	</select>
-
-	<select id="findOtherAll" parameterType="map" resultMap="file,testData"
-		statementType="CALLABLE">
-
-		{call
-		GenerateDataOfDatafeed_Seagate_All_Product_PCS_File
-		(#{strStartDate,mode=IN,jdbcType=VARCHAR},
-		#{strEndDate,mode=IN,jdbcType=VARCHAR},
-		#{strFactoryID,mode=IN,jdbcType=VARCHAR},
-		#{BAuto,mode=IN,jdbcType=INTEGER})
+		GenerateDataOfDatafeed_Seagate_main_pcs
+		(#{transType,mode=IN,jdbcType=VARCHAR}
+		)
 		}
 
 	</select>

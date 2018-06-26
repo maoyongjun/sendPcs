@@ -12,6 +12,14 @@ public class Config {
 	private String backuppassword="";
 	private String backuppath="";
 	private String backupLocalPath="";
+	private String types="";
+	
+	public String getTypes() {
+		return types;
+	}
+	public void setTypes(String types) {
+		this.types = types;
+	}
 	public String getIp() {
 		return ip;
 	}

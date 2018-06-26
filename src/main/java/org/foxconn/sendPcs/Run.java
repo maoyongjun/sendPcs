@@ -27,83 +27,50 @@ public class Run {
 		Properties prop = new Properties();  
         FileInputStream fis = new FileInputStream(file.getAbsolutePath()+"/"+"config.properties");  
         prop.load(fis); 
-    	System.out.println(file.getAbsolutePath());
-		System.out.println(file.getCanonicalPath());
         config.setIp((String)(prop.get("ip")));
         config.setPort(Integer.parseInt((String)prop.get("port")));
         config.setPath((String)(prop.get("path")));
         config.setUsername((String)(prop.get("username")));
         config.setPassword((String)(prop.get("password")));
-        
         config.setBackupIP((String)(prop.get("backupIP")));
         config.setBackupPort(Integer.parseInt((String)prop.get("backupPort")));
         config.setBackuppath((String)(prop.get("backuppath")));
         config.setBackupusername((String)(prop.get("backupusername")));
         config.setBackuppassword((String)(prop.get("backuppassword")));
         config.setBackupLocalPath((String)(prop.get("backupLocalPath")));
-        
-        
-        String ip=config.getIp();
-		int port = config.getPort();
-		String username =config.getUsername();
-		String password=config.getPassword();
-		String path=config.getPath();
-		
-		String backupIP=config.getBackupIP();
-		int backupPort=config.getBackupPort();
-		String backupusername=config.getBackupusername();
-		String backuppassword=config.getBackuppassword();
-		String backuppath=config.getBackuppath();
-		String backupLocalPath = config.getBackupLocalPath();
-		System.out.println("ip"+ip+"port:"+port+",username:"+username+",password:"+password+",path:"+path);
-		System.out.println("ip"+backupIP+"port:"+backupPort+",username:"+backupusername+",password:"+backuppassword+",path:"+backuppath);
-		System.out.println("backupLocalPath:"+ backupLocalPath);
+        config.setTypes((String)(prop.get("types")));
 	}
 	public static void main(String[] args) {
 		Run run = new Run();
 		try {
 			run.initProp();
-			run.createHP();
-			run.createOther();
+			run.findAll();
 		} catch (Exception e) {
 			LogUtil.writeXmlToLocalDisk("GetDataError:" + e.getMessage() + System.getProperty("line.separator"));
 			e.printStackTrace();
 		}
 	}
 
-	private void createHP() throws Exception {
+	private void findAll() throws Exception {
 		PcsDao pcsDao = ContextUtil.getContext().getBean("pcsDao", PcsDao.class);
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("strFactoryID", "GHGG");
-		map.put("BAuto", "1");
-		List<List<?>> list = null;
-		try {
-			list = pcsDao.findHPAll(map);
-		} catch (DataAccessException e) {
-			throw e;
+		String types = config.getTypes();
+		for(String type :types.split(",")){
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("transType", type);
+			List<List<?>> list = null;
+			try {
+				list = pcsDao.findAll(map);
+			} catch (DataAccessException e) {
+				LogUtil.writeXmlToLocalDisk("GetDataError:" + e.getMessage() + System.getProperty("line.separator"));
+				e.printStackTrace();
+			}
+			writeFile(list);
 		}
-		writeFile(list);
-	}
-
-	private void createOther() throws Exception {
-		PcsDao pcsDao = ContextUtil.getContext().getBean("pcsDao", PcsDao.class);
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("strFactoryID", "GHGG");
-		map.put("BAuto", "1");
-		List<List<?>> list = null;
-		try {
-			list = pcsDao.findOtherAll(map);
-		} catch (DataAccessException e) {
-			throw e;
-		}
-		writeFile(list);
 	}
 
 	private void writeFile(List<List<?>> list) throws Exception {
 		List<PcsResult> resultList = (List<PcsResult>) list.get(1);
 		String filename = list.get(0).toString().replaceAll("[\\[|\\]]", "");
-		// System.out.println(filename);
-		// System.out.println(resultList);
 		System.out.println("has collected data, total  lines:" + String.valueOf(resultList.size()));
 		if ("".equals(filename)) {
 			LogUtil.writeXmlToLocalDisk("file name is null" + System.getProperty("line.separator"));
@@ -120,13 +87,10 @@ public class Run {
 				map.put(PcsResult.getSsn(), PcsResult.getSsn());
 			}
 		}
-		// String ftp1Msg =msg.toString();
-		// String ftp2Msg = ftp1Msg;
 		if (!"".equals(msg.toString())) {
 			String backupLocalPath = config.getBackupLocalPath();
 			LogUtil.writeString(backupLocalPath, filename, msg.toString());
 			LogUtil.writeXmlToLocalDisk("has backuped to local disk" + System.getProperty("line.separator"));
-			System.out.println("backup to local disk:" + backupLocalPath + filename);
 			InputStream inputStream = new ByteArrayInputStream(msg.toString().getBytes("UTF-8"));
 			String uploadMsg = "false";
 			String uploadMsgBack = "false";
@@ -166,7 +130,6 @@ public class Run {
 						+ System.getProperty("line.separator"));
 				String deleteFlag = UploadFile.deleteFile(ip, 21, username,
 						password, "/", filename);
-				System.out.println(deleteFlag);
 				LogUtil.writeXmlToLocalDisk(
 						ip+":delete," + deleteFlag + System.getProperty("line.separator"));
 			}
@@ -180,8 +143,6 @@ public class Run {
 					"upload to ftp:"+ip + uploadMsg + System.getProperty("line.separator"));
 			LogUtil.writeXmlToLocalDisk(
 					"upload to ftp:"+backupIP + uploadMsgBack + System.getProperty("line.separator"));
-			System.out.println("upload to ftp:"+ip + uploadMsg);
-			System.out.println("upload to ftp:"+backupIP + uploadMsgBack);
 		}
 		LogUtil.writeXmlToLocalDisk(
 				"success-->create,back up  and upload pcs file ok:size" + resultList.size() + ",filename:" + filename
