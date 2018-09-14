@@ -31,7 +31,7 @@
             </map>
         </property>
    		 <!-- 默认目标数据源为你主库数据源 -->
-        <property name="defaultTargetDataSource" ref="db8"/>
+        <property name="defaultTargetDataSource" ref="db7"/>
     </bean>
     
     <!-- 配置事务管理组件 -->
