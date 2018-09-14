@@ -13,7 +13,16 @@ public class Config {
 	private String backuppath="";
 	private String backupLocalPath="";
 	private String types="";
+	private String makeFile;
 	
+	
+	
+	public String getMakeFile() {
+		return makeFile;
+	}
+	public void setMakeFile(String makeFile) {
+		this.makeFile = makeFile;
+	}
 	public String getTypes() {
 		return types;
 	}

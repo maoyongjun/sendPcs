@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,11 +18,9 @@ import org.foxconn.util.ContextUtil;
 import org.foxconn.util.LogUtil;
 import org.foxconn.util.StringArrayUtil;
 import org.foxconn.util.UploadFile;
-import org.springframework.dao.DataAccessException;
 
 public class Run {
 	Config config = new Config();
-	
 	private void initProp() throws IOException{
 		File file = new File("");
 		Properties prop = new Properties();  
@@ -39,6 +38,7 @@ public class Run {
         config.setBackuppassword((String)(prop.get("backuppassword")));
         config.setBackupLocalPath((String)(prop.get("backupLocalPath")));
         config.setTypes((String)(prop.get("types")));
+        config.setMakeFile((String)(prop.get("makeFile")));
 	}
 	public static void main(String[] args) {
 		Run run = new Run();
@@ -54,18 +54,54 @@ public class Run {
 	private void findAll() throws Exception {
 		PcsDao pcsDao = ContextUtil.getContext().getBean("pcsDao", PcsDao.class);
 		String types = config.getTypes();
+		String makeFile = config.getMakeFile();
+		List<List<?>> list = null;
 		for(String type :types.split(",")){
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("transType", type);
-			List<List<?>> list = null;
+			List<List<?>> thisList = null;
 			try {
-				list = pcsDao.findAll(map);
-			} catch (DataAccessException e) {
+				thisList= pcsDao.findAll(map);
+			} catch (Exception e) {
 				LogUtil.writeXmlToLocalDisk("GetDataError:" + e.getMessage() + System.getProperty("line.separator"));
-				e.printStackTrace();
 			}
+			if("each".equals(makeFile)){
+				writeFile(thisList);
+			}else if("single".equals(makeFile)){
+				list = addPcsList(list,thisList);
+			}
+		}
+		//single
+		if(list!=null){
 			writeFile(list);
 		}
+	}
+	private List<List<?>>  addPcsList(List<List<?>> totalList,List<List<?>> thisList){
+		List<String> fileName=null;
+		List<PcsResult> pcsResults=null;
+		if(totalList==null){
+			totalList= new ArrayList<List<?>>();
+		}
+		if(totalList.size()==0){
+			fileName = new ArrayList<String>();
+			totalList.add(fileName);
+		}
+		if(totalList.size()==1){
+			pcsResults = new ArrayList<PcsResult>();
+			totalList.add(pcsResults);
+		}
+		if(totalList.size()>=2){
+			//如果没有文件名
+			if(totalList.get(0).size()==0){
+				((List<String>)totalList.get(0)).addAll((List<String>) thisList.get(0));
+			}
+			//如果有pcs的结果
+			if(thisList.size()>=2){
+				List<PcsResult> resultList = (List<PcsResult>) thisList.get(1);
+				((List<PcsResult>)totalList.get(1)).addAll(resultList);
+			}
+		}
+		return totalList;
 	}
 
 	private void writeFile(List<List<?>> list) throws Exception {
@@ -145,7 +181,7 @@ public class Run {
 					"upload to ftp:"+backupIP + uploadMsgBack + System.getProperty("line.separator"));
 		}
 		LogUtil.writeXmlToLocalDisk(
-				"success-->create,back up  and upload pcs file ok:size" + resultList.size() + ",filename:" + filename
+				"success-->create,back up  pcs file :size" + resultList.size() + ",filename:" + filename
 						+ System.getProperty("line.separator") + System.getProperty("line.separator"));
 	}
 }
