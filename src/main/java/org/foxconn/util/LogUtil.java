@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.foxconn.sendPcs.Run;
+
 public class LogUtil {
 
 	public static boolean writeXmlToLocalDisk(String strs) {
@@ -15,7 +17,7 @@ public class LogUtil {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
 		SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM");
 		SimpleDateFormat sdf3 = new SimpleDateFormat("yyyy-MM-dd");
-		String baseLocalDir = "D:\\seagatePcs\\log\\" + sdf2.format(new Date());
+		String baseLocalDir = Run.config.getBackupLocalPath()+"log\\" + sdf2.format(new Date());
 		File file = new File(baseLocalDir);
 		if (!file.exists()) {
 			file.mkdirs();

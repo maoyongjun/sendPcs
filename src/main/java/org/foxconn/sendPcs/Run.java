@@ -20,7 +20,7 @@ import org.foxconn.util.StringArrayUtil;
 import org.foxconn.util.UploadFile;
 
 public class Run {
-	Config config = new Config();
+	public static Config config = new Config();
 	private void initProp() throws IOException{
 		File file = new File("");
 		Properties prop = new Properties();  
@@ -59,11 +59,16 @@ public class Run {
 		for(String type :types.split(",")){
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("transType", type);
+			LogUtil.writeXmlToLocalDisk("get pcs Data transType:" +type + System.getProperty("line.separator"));
 			List<List<?>> thisList = null;
 			try {
 				thisList= pcsDao.findAll(map);
 			} catch (Exception e) {
-				LogUtil.writeXmlToLocalDisk("GetDataError:" + e.getMessage() + System.getProperty("line.separator"));
+				if(e.getMessage()!=null&&e.getMessage().indexOf("99999")!=-1){
+					LogUtil.writeXmlToLocalDisk("GetDataError:" + "today has no data " + System.getProperty("line.separator"));
+				}else{
+					LogUtil.writeXmlToLocalDisk("GetDataError:" + e.getMessage() + System.getProperty("line.separator"));
+				}
 			}
 			if("each".equals(makeFile)){
 				writeFile(thisList);
@@ -105,8 +110,22 @@ public class Run {
 	}
 
 	private void writeFile(List<List<?>> list) throws Exception {
+		String filename ="no file Name";
+		
+		if(list!=null&&list.size()>0){
+			try {
+				list.get(0).toString().replaceAll("[\\[|\\]]", "");
+			} catch (Exception e) {
+				list.toString().replaceAll("[\\[|\\]]", "");
+			}
+			
+		}
+		if(null==list||list.size()<2){
+			LogUtil.writeXmlToLocalDisk("this transtype has no data,fileName:" +filename+ System.getProperty("line.separator")+ System.getProperty("line.separator"));
+			return ;
+		}
 		List<PcsResult> resultList = (List<PcsResult>) list.get(1);
-		String filename = list.get(0).toString().replaceAll("[\\[|\\]]", "");
+		
 		System.out.println("has collected data, total  lines:" + String.valueOf(resultList.size()));
 		if ("".equals(filename)) {
 			LogUtil.writeXmlToLocalDisk("file name is null" + System.getProperty("line.separator"));
@@ -124,7 +143,7 @@ public class Run {
 			}
 		}
 		if (!"".equals(msg.toString())) {
-			String backupLocalPath = config.getBackupLocalPath();
+			String backupLocalPath = config.getBackupLocalPath()+"backup\\";
 			LogUtil.writeString(backupLocalPath, filename, msg.toString());
 			LogUtil.writeXmlToLocalDisk("has backuped to local disk" + System.getProperty("line.separator"));
 			InputStream inputStream = new ByteArrayInputStream(msg.toString().getBytes("UTF-8"));

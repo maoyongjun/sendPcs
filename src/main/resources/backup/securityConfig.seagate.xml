@@ -31,7 +31,7 @@
             </map>
         </property>
    		 <!-- 默认目标数据源为你主库数据源 -->
-        <property name="defaultTargetDataSource" ref="db10"/>
+        <property name="defaultTargetDataSource" ref="db7"/>
     </bean>
     
     <!-- 配置事务管理组件 -->
@@ -78,17 +78,5 @@
 		<property name="password" value="Fdblv1601"></property>
 		<property name="initialSize" value="2"></property>
 		<property name="maxActive" value="2"></property>
-	</bean>
-	<bean id="db9" class="org.apache.commons.dbcp.BasicDataSource">
-		<property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"></property>
-		<property name="url" value="jdbc:sqlserver://10.67.44.194:3000;DatabaseName=efoxsfclxdh_test1"></property>
-		<property name="username" value="onsitetest"></property>
-		<property name="password" value="os$4tet"></property>
-	</bean>
-	<bean id="db10" class="org.apache.commons.dbcp.BasicDataSource">
-		<property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"></property>
-		<property name="url" value="jdbc:sqlserver://10.67.70.75:3000;DatabaseName=efoxsfclxdh"></property>
-		<property name="username" value="essnlxddl"></property>
-		<property name="password" value="Fdblx1601"></property>
 	</bean>
 </beans>
