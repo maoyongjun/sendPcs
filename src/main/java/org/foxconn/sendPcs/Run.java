@@ -114,9 +114,9 @@ public class Run {
 		
 		if(list!=null&&list.size()>0){
 			try {
-				list.get(0).toString().replaceAll("[\\[|\\]]", "");
+				filename = list.get(0).toString().replaceAll("[\\[|\\]]", "");
 			} catch (Exception e) {
-				list.toString().replaceAll("[\\[|\\]]", "");
+				filename = list.toString().replaceAll("[\\[|\\]]", "");
 			}
 			
 		}
