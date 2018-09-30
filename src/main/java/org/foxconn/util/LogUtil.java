@@ -8,9 +8,9 @@ import java.util.Date;
 
 import org.foxconn.sendPcs.Run;
 
-public class LogUtil {
+public abstract class LogUtil {
 
-	public static boolean writeXmlToLocalDisk(String strs) {
+	public  boolean writeXmlToLocalDisk(String type,String strs) {
 		if (null == strs || "".equals(strs)) {
 			return false;
 		}
@@ -22,11 +22,11 @@ public class LogUtil {
 		if (!file.exists()) {
 			file.mkdirs();
 		}
-		return writeString(baseLocalDir, sdf3.format(new Date()) + ".txt", sdf.format(new Date()) + ":" + strs);
+		return writeString(baseLocalDir, sdf3.format(new Date()) + ".txt", sdf.format(new Date()) +" "+ type+":" + strs);
 
 	}
 
-	public static boolean writeString(String dir, String filename, String strs) {
+	public  boolean writeString(String dir, String filename, String strs) {
 
 		File file = new File(dir);
 		if (!file.exists()) {
@@ -53,8 +53,4 @@ public class LogUtil {
 		return false;
 	}
 
-	public static void main(String[] args) {
-		writeXmlToLocalDisk("12344" + System.getProperty("line.separator"));
-		writeString("D:\\vestaPcs\\log", "test.txt", "asdfdfsd");
-	}
 }

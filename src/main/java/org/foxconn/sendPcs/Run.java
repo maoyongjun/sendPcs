@@ -15,11 +15,11 @@ import org.foxconn.config.Config;
 import org.foxconn.dao.PcsDao;
 import org.foxconn.entity.PcsResult;
 import org.foxconn.util.ContextUtil;
-import org.foxconn.util.LogUtil;
+import org.foxconn.util.FileLog;
 import org.foxconn.util.StringArrayUtil;
 import org.foxconn.util.UploadFile;
 
-public class Run {
+public class Run extends FileLog{
 	public static Config config = new Config();
 	private void initProp() throws IOException{
 		File file = new File("");
@@ -46,7 +46,7 @@ public class Run {
 			run.initProp();
 			run.findAll();
 		} catch (Exception e) {
-			LogUtil.writeXmlToLocalDisk("GetDataError:" + e.getMessage() + System.getProperty("line.separator"));
+			run.logError("GetDataError:" + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -59,15 +59,15 @@ public class Run {
 		for(String type :types.split(",")){
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("transType", type);
-			LogUtil.writeXmlToLocalDisk("get pcs Data transType:" +type + System.getProperty("line.separator"));
+			logInfo("get pcs Data transType:" +type );
 			List<List<?>> thisList = null;
 			try {
 				thisList= pcsDao.findAll(map);
 			} catch (Exception e) {
 				if(e.getMessage()!=null&&e.getMessage().indexOf("99999")!=-1){
-					LogUtil.writeXmlToLocalDisk("GetDataError:" + "today has no data " + System.getProperty("line.separator"));
+					logError("GetDataError:" + "today has no data " );
 				}else{
-					LogUtil.writeXmlToLocalDisk("GetDataError:" + e.getMessage() + System.getProperty("line.separator"));
+					logError("GetDataError:" + e.getMessage() );
 				}
 			}
 			if("each".equals(makeFile)){
@@ -121,14 +121,14 @@ public class Run {
 			
 		}
 		if(null==list||list.size()<2){
-			LogUtil.writeXmlToLocalDisk("this transtype has no data,fileName:" +filename+ System.getProperty("line.separator")+ System.getProperty("line.separator"));
+			logInfo("this transtype has no data,fileName:" +filename+System.getProperty("line.separator"));
 			return ;
 		}
 		List<PcsResult> resultList = (List<PcsResult>) list.get(1);
 		
 		System.out.println("has collected data, total  lines:" + String.valueOf(resultList.size()));
 		if ("".equals(filename)) {
-			LogUtil.writeXmlToLocalDisk("file name is null" + System.getProperty("line.separator"));
+			logInfo("file name is null" );
 		}
 		Map<String, String> map = new HashMap<String, String>();
 		StringBuilder msg = new StringBuilder("");
@@ -144,8 +144,8 @@ public class Run {
 		}
 		if (!"".equals(msg.toString())) {
 			String backupLocalPath = config.getBackupLocalPath()+"backup\\";
-			LogUtil.writeString(backupLocalPath, filename, msg.toString());
-			LogUtil.writeXmlToLocalDisk("has backuped to local disk" + System.getProperty("line.separator"));
+			writeString(backupLocalPath, filename, msg.toString());
+			logInfo("has backuped to local disk");
 			InputStream inputStream = new ByteArrayInputStream(msg.toString().getBytes("UTF-8"));
 			String uploadMsg = "false";
 			String uploadMsgBack = "false";
@@ -181,26 +181,20 @@ public class Run {
 				Map<String, String> ssnMap = new HashMap<String, String>();
 				ssnMap.put("sns", strSSNS);
 				pcsDao.updateSSNStatus(ssnMap);
-				LogUtil.writeXmlToLocalDisk("upload ftp failed,rollback pcs status,It will be upload again tomorrow"
-						+ System.getProperty("line.separator"));
+				logInfo("upload ftp failed,rollback pcs status,It will be upload again tomorrow");
 				String deleteFlag = UploadFile.deleteFile(ip, 21, username,
 						password, "/", filename);
-				LogUtil.writeXmlToLocalDisk(
-						ip+":delete," + deleteFlag + System.getProperty("line.separator"));
+				logInfo(ip+":delete," + deleteFlag );
 			}
 
 			if (uploadMsgBack.indexOf("false") != -1) {// 如果上传ftp失败，改回状态
 				String deleteFlagBackup = UploadFile.deleteFile(backupIP, backupPort, backupusername, backuppassword, backuppath, filename);
-				LogUtil.writeXmlToLocalDisk(
-						backupIP+":delete," + deleteFlagBackup + System.getProperty("line.separator"));
+				logInfo(backupIP+":delete," + deleteFlagBackup);
 			}
-			LogUtil.writeXmlToLocalDisk(
-					"upload to ftp:"+ip + uploadMsg + System.getProperty("line.separator"));
-			LogUtil.writeXmlToLocalDisk(
-					"upload to ftp:"+backupIP + uploadMsgBack + System.getProperty("line.separator"));
+			logInfo("upload to ftp:"+ip + uploadMsg );
+			logInfo("upload to ftp:"+backupIP + uploadMsgBack);
 		}
-		LogUtil.writeXmlToLocalDisk(
-				"success-->create,back up  pcs file :size" + resultList.size() + ",filename:" + filename
-						+ System.getProperty("line.separator") + System.getProperty("line.separator"));
+		logInfo("success-->create,back up  pcs file :size" + resultList.size() + ",filename:" + filename
+						+ System.getProperty("line.separator"));
 	}
 }

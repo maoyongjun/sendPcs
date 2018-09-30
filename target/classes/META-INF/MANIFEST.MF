@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Built-By: mao_yongjun
+Built-By: H7108464
 Class-Path: lib/spring-beans-4.3.10.RELEASE.jar lib/spring-core-4.3.10
  .RELEASE.jar lib/spring-context-4.3.10.RELEASE.jar lib/spring-aop-4.3
  .10.RELEASE.jar lib/spring-expression-4.3.10.RELEASE.jar lib/spring-a
@@ -24,7 +24,7 @@ Class-Path: lib/spring-beans-4.3.10.RELEASE.jar lib/spring-core-4.3.10
  b/oauth2-oidc-sdk-4.5.jar lib/jcip-annotations-1.0.jar lib/commons-la
  ng3-3.3.1.jar lib/json-smart-1.1.1.jar lib/lang-tag-1.4.jar lib/nimbu
  s-jose-jwt-3.1.2.jar lib/bcprov-jdk15on-1.51.jar lib/gson-2.2.4.jar l
- ib/slf4j-api-1.7.5.jar
+ ib/slf4j-simple-1.7.25.jar lib/slf4j-api-1.7.25.jar
 Build-Jdk: 1.8.0_101
 Created-By: Maven Integration for Eclipse
 Main-Class: org.foxconn.sendPcs.Run

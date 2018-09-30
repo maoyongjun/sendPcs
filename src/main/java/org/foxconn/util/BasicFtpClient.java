@@ -14,7 +14,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import org.apache.http.ParseException;
 
-public class BasicFtpClient {
+public class BasicFtpClient extends FileLog{
 	private FTPClient ftpClient; 
 	private String fileName, strencoding; 
 	private String ip = "192.168.43.72";        // 服务器IP地址 
@@ -29,7 +29,11 @@ public class BasicFtpClient {
 	public BasicFtpClient() { 
 	  init(); 
 	} 
-	 
+	
+	public BasicFtpClient(String ip,int port,String userName,String userPwd,String path){
+		strencoding = "UTF-8"; 
+		this.connectServer(ip, port, userName, userPwd, path); 
+	}
 	public void init() { 
 	  // 以当前系统时间拼接文件名 
 	  fileName = "20131112114850793835861000010161141169.txt"; 
@@ -62,6 +66,7 @@ public class BasicFtpClient {
 			if (!FTPReply.isPositiveCompletion(reply)) {
 				ftpClient.disconnect();
 				System.out.println("login fail:"+reply);
+				return;
 			}else{
 				System.out.println("login success:"+reply);
 			}
@@ -171,5 +176,4 @@ public class BasicFtpClient {
 		System.out.println("store:"+storeFileSuccess);
 
 	}
-	 
 }

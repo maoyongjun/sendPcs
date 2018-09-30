@@ -127,7 +127,7 @@ public class UploadFile {
 			// System.out.println(result);
 		} catch (Exception e) {
 			e.printStackTrace();
-			LogUtil.writeXmlToLocalDisk(e.getMessage() + "\n");
+			//LogUtil.writeXmlToLocalDisk(e.getMessage() + "\n");
 		}
 	}
 }
