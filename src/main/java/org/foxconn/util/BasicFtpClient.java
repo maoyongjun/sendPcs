@@ -22,23 +22,26 @@ public class BasicFtpClient extends FileLog{
 	private String userPwd = "1234";        // 密码 
 	private int port = 21;      // 端口号 
 	private String path = "/test";        // 读取文件的存放目录 
-	 
+	private boolean connectStatus=false;
 	/** 
 	  * init ftp servere 
 	  */ 
 	public BasicFtpClient() { 
 	  init(); 
 	} 
+	public boolean getConnectStatus(){
+		return connectStatus;
+	}
 	
 	public BasicFtpClient(String ip,int port,String userName,String userPwd,String path){
 		strencoding = "UTF-8"; 
-		this.connectServer(ip, port, userName, userPwd, path); 
+		connectStatus = this.connectServer(ip, port, userName, userPwd, path); 
 	}
 	public void init() { 
 	  // 以当前系统时间拼接文件名 
 	  fileName = "20131112114850793835861000010161141169.txt"; 
 	  strencoding = "UTF-8"; 
-	  this.connectServer(ip, port, userName, userPwd, path); 
+	  connectStatus = this.connectServer(ip, port, userName, userPwd, path); 
 	} 
 	 
 	/** 
@@ -50,7 +53,8 @@ public class BasicFtpClient extends FileLog{
 	  * @throws SocketException 
 	  * @throws IOException function:连接到服务器 
 	  */ 
-	public void connectServer(String ip, int port, String userName, String userPwd, String path) {
+	public boolean connectServer(String ip, int port, String userName, String userPwd, String path) {
+		boolean flag= false;
 		ftpClient = new FTPClient();
 		try {
 			ftpClient.setControlEncoding(strencoding);
@@ -58,33 +62,39 @@ public class BasicFtpClient extends FileLog{
 			// 连接
 			ftpClient.connect(ip, port);
 			// 登录
-			ftpClient.login(userName, userPwd);
-			
+			flag = ftpClient.login(userName, userPwd);
 			
 			int reply = ftpClient.getReplyCode();
 			
 			if (!FTPReply.isPositiveCompletion(reply)) {
 				ftpClient.disconnect();
-				System.out.println("login fail:"+reply);
-				return;
+				logError("connect fail:"+reply);
+				return false;
 			}else{
-				System.out.println("login success:"+reply);
+				logInfo("connect success:"+reply);
+			}
+			if(!flag){
+				return flag;
 			}
 			
 			ftpClient.enterLocalPassiveMode();
 			ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
 			ftpClient.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
 			
-		
 			if (path != null && path.length() > 0) {
 				// 跳转到指定目录
-				ftpClient.changeWorkingDirectory(path);
+				flag = ftpClient.changeWorkingDirectory(path);
+				if(!flag){
+					logInfo("change work dir false:"+reply);
+				}
 			}
+			return flag;
 		} catch (SocketException e) {
-			System.out.println(e.getMessage());
+			logError(e.getMessage());
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
+			logError(e.getMessage());
 		}
+		return false;
 	}
 
 	/** 
@@ -96,7 +106,7 @@ public class BasicFtpClient extends FileLog{
 	    ftpClient.logout(); 
 	    ftpClient.disconnect(); 
 	   } catch (IOException e) { 
-		   System.out.println(e.getMessage());
+		   logError(e.getMessage());
 	   } 
 	  } 
 	} 
@@ -157,23 +167,32 @@ public class BasicFtpClient extends FileLog{
 	/** 
 	  * @param fileName function:删除文件 
 	  */ 
-	public void deleteFile(String fileName) { 
-	  try { 
-	   ftpClient.deleteFile(fileName); 
+	public boolean deleteFile(String fileName) { 
+	  boolean flag=false;
+		try { 
+			flag = ftpClient.deleteFile(fileName); 
 	  } catch (IOException e) { 
-	   e.printStackTrace(); 
+		  logError("deleteFile:"+e.getMessage());
 	  } 
+	  return flag;
 	} 
 	
-	public void uploadFile(String filename, InputStream input) {
-		String storeFileSuccess = "false";
+	public boolean uploadFile(String filename, InputStream input) {
+		boolean storeFileSuccess=false;
+		int replayCode=0;
 		try {
-			storeFileSuccess = ftpClient.storeFile(filename, input) + "";
+			storeFileSuccess = ftpClient.storeFile(filename, input);
+			replayCode= ftpClient.getReplyCode();// 获取状态码
 		} catch (IOException e) {
-			//e.printStackTrace();
-			storeFileSuccess+=e.getMessage();
+			logError("uploadFile fileName-->"+filename+":"+e.getMessage());
+			return false;
 		}
-		System.out.println("store:"+storeFileSuccess);
-
+		logInfo("store:"+storeFileSuccess+replayCode);
+		try {
+			input.close();
+		} catch (IOException e) {
+			logError("close inputStream:"+e.getMessage());
+		}
+		return storeFileSuccess;
 	}
 }

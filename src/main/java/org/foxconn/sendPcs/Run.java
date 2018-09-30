@@ -14,6 +14,7 @@ import java.util.Properties;
 import org.foxconn.config.Config;
 import org.foxconn.dao.PcsDao;
 import org.foxconn.entity.PcsResult;
+import org.foxconn.util.BasicFtpClient;
 import org.foxconn.util.ContextUtil;
 import org.foxconn.util.FileLog;
 import org.foxconn.util.StringArrayUtil;
@@ -21,6 +22,8 @@ import org.foxconn.util.UploadFile;
 
 public class Run extends FileLog{
 	public static Config config = new Config();
+	private BasicFtpClient client;
+	private BasicFtpClient backupClient;
 	private void initProp() throws IOException{
 		File file = new File("");
 		Properties prop = new Properties();  
@@ -39,30 +42,43 @@ public class Run extends FileLog{
         config.setBackupLocalPath((String)(prop.get("backupLocalPath")));
         config.setTypes((String)(prop.get("types")));
         config.setMakeFile((String)(prop.get("makeFile")));
-	}
+        config.setLoggerType((String)(prop.get("loggerType")));
+  }
 	public static void main(String[] args) {
 		Run run = new Run();
 		try {
 			run.initProp();
-			run.findAll();
+			run.client = new BasicFtpClient(config.getIp(), config.getPort(), config.getUsername(), config.getPassword(), config.getPath());
+			run.backupClient = new BasicFtpClient(config.getBackupIP(), config.getBackupPort(), config.getBackupusername(), config.getBackuppassword(), config.getBackuppath());
+			if(run.client.getConnectStatus()){
+				run.runPcs();
+			}else{
+				run.logError("connect ftp server Error!");
+			}
 		} catch (Exception e) {
-			run.logError("GetDataError:" + e.getMessage());
-			e.printStackTrace();
+			run.logError("RunPcsError:" + e.getMessage());
+		}finally {
+			if(run.client!=null){
+				run.client.closeServer();
+			}
+			if(run.backupClient!=null){
+				run.backupClient.closeServer();
+			}
 		}
 	}
 
-	private void findAll() throws Exception {
+	private void runPcs() throws Exception {
 		PcsDao pcsDao = ContextUtil.getContext().getBean("pcsDao", PcsDao.class);
 		String types = config.getTypes();
 		String makeFile = config.getMakeFile();
-		List<List<?>> list = null;
+		List<List<?>> singleFilePcsList = null;
 		for(String type :types.split(",")){
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("transType", type);
 			logInfo("get pcs Data transType:" +type );
 			List<List<?>> thisList = null;
 			try {
-				thisList= pcsDao.findAll(map);
+				//thisList= pcsDao.findAll(map);
 			} catch (Exception e) {
 				if(e.getMessage()!=null&&e.getMessage().indexOf("99999")!=-1){
 					logError("GetDataError:" + "today has no data " );
@@ -71,16 +87,17 @@ public class Run extends FileLog{
 				}
 			}
 			if("each".equals(makeFile)){
-				writeFile(thisList);
+				writeFile(thisList);//单独分开发送
 			}else if("single".equals(makeFile)){
-				list = addPcsList(list,thisList);
+				singleFilePcsList = addPcsList(singleFilePcsList,thisList);
 			}
 		}
 		//single
-		if(list!=null){
-			writeFile(list);
+		if(singleFilePcsList!=null){
+			writeFile(singleFilePcsList);//合成一个文件发送
 		}
 	}
+	//多个pcs结果，进行汇总
 	private List<List<?>>  addPcsList(List<List<?>> totalList,List<List<?>> thisList){
 		List<String> fileName=null;
 		List<PcsResult> pcsResults=null;
@@ -109,6 +126,7 @@ public class Run extends FileLog{
 		return totalList;
 	}
 
+	//发送pcs和备份pcs
 	private void writeFile(List<List<?>> list) throws Exception {
 		String filename ="no file Name";
 		
@@ -147,52 +165,27 @@ public class Run extends FileLog{
 			writeString(backupLocalPath, filename, msg.toString());
 			logInfo("has backuped to local disk");
 			InputStream inputStream = new ByteArrayInputStream(msg.toString().getBytes("UTF-8"));
-			String uploadMsg = "false";
-			String uploadMsgBack = "false";
+			boolean uploadMsg =false;
+			boolean uploadMsgBack = false;
 			String strSSNS = "";
-			String ip=config.getIp();
-			int port = config.getPort();
-			String username =config.getUsername();
-			String password=config.getPassword();
-			String path=config.getPath();
-			
-			String backupIP=config.getBackupIP();
-			int backupPort=config.getBackupPort();
-			String backupusername=config.getBackupusername();
-			String backuppassword=config.getBackuppassword();
-			String backuppath=config.getBackuppath();
-			try {
-				uploadMsg = UploadFile.uploadFile(ip, port, username, password
-						,path,
-						filename, inputStream);
-			} catch (Exception e) {
-				uploadMsg = uploadMsg + "-->" + e.getMessage();
-			}
+			client.uploadFile(filename, inputStream);
 			InputStream inputStream2 = new ByteArrayInputStream(msg.toString().getBytes("UTF-8"));
-			try {
-				uploadMsgBack = UploadFile.uploadFile(backupIP, backupPort, backupusername, backuppassword, backuppath, filename,
-						inputStream2);
-			} catch (Exception e) {
-				uploadMsgBack = uploadMsgBack + "-->" + e.getMessage();
-			}
-			if (uploadMsg.indexOf("false") != -1) {// 如果上传ftp失败，改回状态
+			backupClient.uploadFile(filename, inputStream2);
+			if (!uploadMsg) {// 如果上传ftp失败，改回状态
 				PcsDao pcsDao = ContextUtil.getContext().getBean("pcsDao", PcsDao.class);
 				strSSNS = StringArrayUtil.addDHAndFh(map.values());
 				Map<String, String> ssnMap = new HashMap<String, String>();
 				ssnMap.put("sns", strSSNS);
 				pcsDao.updateSSNStatus(ssnMap);
 				logInfo("upload ftp failed,rollback pcs status,It will be upload again tomorrow");
-				String deleteFlag = UploadFile.deleteFile(ip, 21, username,
-						password, "/", filename);
-				logInfo(ip+":delete," + deleteFlag );
+				logInfo(config.getIp()+":delete," + client.deleteFile(filename) );
 			}
 
-			if (uploadMsgBack.indexOf("false") != -1) {// 如果上传ftp失败，改回状态
-				String deleteFlagBackup = UploadFile.deleteFile(backupIP, backupPort, backupusername, backuppassword, backuppath, filename);
-				logInfo(backupIP+":delete," + deleteFlagBackup);
+			if (!uploadMsgBack) {// 如果上传ftp失败，改回状态
+				logInfo(config.getBackupIP()+":delete," + backupClient.deleteFile(filename));
 			}
-			logInfo("upload to ftp:"+ip + uploadMsg );
-			logInfo("upload to ftp:"+backupIP + uploadMsgBack);
+			logInfo("upload to ftp:"+config.getIp() + uploadMsg );
+			logInfo("upload to ftp:"+config.getBackupIP() + uploadMsgBack);
 		}
 		logInfo("success-->create,back up  pcs file :size" + resultList.size() + ",filename:" + filename
 						+ System.getProperty("line.separator"));

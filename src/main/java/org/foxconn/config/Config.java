@@ -14,9 +14,16 @@ public class Config {
 	private String backupLocalPath="";
 	private String types="";
 	private String makeFile;
+	private String loggerType;
 	
 	
 	
+	public String getLoggerType() {
+		return loggerType;
+	}
+	public void setLoggerType(String loggerType) {
+		this.loggerType = loggerType;
+	}
 	public String getMakeFile() {
 		return makeFile;
 	}
