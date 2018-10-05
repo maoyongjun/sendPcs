@@ -27,11 +27,12 @@
      <bean id="dataSource" class="org.foxconn.database.DynamicDataSource">
         <property name="targetDataSources">
             <map key-type="java.lang.String">
-        		<entry key="dataSource1" value-ref="db1"></entry>
+        		<entry key="seagate" value-ref="db7"></entry>
+        		<entry key="dothill" value-ref="db10"></entry>
             </map>
         </property>
    		 <!-- 默认目标数据源为你主库数据源 -->
-        <property name="defaultTargetDataSource" ref="db7"/>
+        <property name="defaultTargetDataSource" ref="db12"/>
     </bean>
     
     <!-- 配置事务管理组件 -->

@@ -17,7 +17,9 @@ public class PropUtils {
 			// URLDecoder.decode(PropUtils.class.getProtectionDomain().getCodeSource().getLocation().getFile(),
 			// "UTF-8");
 			// LOCATION = temp.substring(1, temp.lastIndexOf('/'));
-			LOCATION = System.getProperty("catalina.home");
+//			LOCATION = System.getProperty("catalina.home");
+			File file = new File("");
+			LOCATION = file.getAbsolutePath();
 		} catch (Exception e) {
 			LOCATION = "";
 		}
