@@ -160,6 +160,7 @@ public class Run extends FileLog{
 				map.put(PcsResult.getSsn(), PcsResult.getSsn());
 			}
 		}
+		String suffex=".temp";
 		if (!"".equals(msg.toString())) {
 			String backupLocalPath = config.getBackupLocalPath()+"backup\\";
 			writeString(backupLocalPath, filename, msg.toString());
@@ -168,9 +169,9 @@ public class Run extends FileLog{
 			boolean uploadMsg =false;
 			boolean uploadMsgBack = false;
 			String strSSNS = "";
-			client.uploadFile(filename, inputStream);
+			uploadMsg = client.uploadFile(filename+suffex, inputStream);
 			InputStream inputStream2 = new ByteArrayInputStream(msg.toString().getBytes("UTF-8"));
-			backupClient.uploadFile(filename, inputStream2);
+			uploadMsgBack = backupClient.uploadFile(filename+suffex, inputStream2);
 			if (!uploadMsg) {// 如果上传ftp失败，改回状态
 				PcsDao pcsDao = ContextUtil.getContext().getBean("pcsDao", PcsDao.class);
 				strSSNS = StringArrayUtil.addDHAndFh(map.values());
@@ -178,14 +179,19 @@ public class Run extends FileLog{
 				ssnMap.put("sns", strSSNS);
 				pcsDao.updateSSNStatus(ssnMap);
 				logInfo("upload ftp failed,rollback pcs status,It will be upload again tomorrow");
-				logInfo(config.getIp()+":delete," + client.deleteFile(filename) );
+				logInfo(config.getIp()+":delete," + client.deleteFile(filename+suffex) );
 			}
 
 			if (!uploadMsgBack) {// 如果上传ftp失败，改回状态
-				logInfo(config.getBackupIP()+":delete," + backupClient.deleteFile(filename));
+				logInfo(config.getBackupIP()+":delete," + backupClient.deleteFile(filename+suffex));
 			}
 			logInfo("upload to ftp:"+config.getIp() + uploadMsg );
 			logInfo("upload to ftp:"+config.getBackupIP() + uploadMsgBack);
+			uploadMsg = client.renameFile(filename+suffex, filename);
+			uploadMsgBack= backupClient.renameFile(filename+suffex, filename);
+			logInfo("rename flag:"+config.getIp() + uploadMsg );
+			logInfo("rename flag:"+config.getBackupIP() + uploadMsgBack);
+		
 		}
 		logInfo("success-->create,back up  pcs file :size" + resultList.size() + ",filename:" + filename
 						+ System.getProperty("line.separator"));

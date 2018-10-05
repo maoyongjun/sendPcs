@@ -195,4 +195,9 @@ public class BasicFtpClient extends FileLog{
 		}
 		return storeFileSuccess;
 	}
+	public boolean renameFile(String from,String to) throws IOException{
+		boolean flag =false;
+		flag= ftpClient.rename(from, to);
+		return flag;
+	}
 }
