@@ -78,7 +78,7 @@ public class Run extends FileLog{
 			logInfo("get pcs Data transType:" +type );
 			List<List<?>> thisList = null;
 			try {
-				//thisList= pcsDao.findAll(map);
+				thisList= pcsDao.findAll(map);
 			} catch (Exception e) {
 				if(e.getMessage()!=null&&e.getMessage().indexOf("99999")!=-1){
 					logError("GetDataError:" + "today has no data " );
