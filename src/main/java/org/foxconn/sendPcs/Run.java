@@ -48,8 +48,7 @@ public class Run extends FileLog{
 		Run run = new Run();
 		try {
 			run.initProp();
-			run.client = new BasicFtpClient(config.getIp(), config.getPort(), config.getUsername(), config.getPassword(), config.getPath());
-			run.backupClient = new BasicFtpClient(config.getBackupIP(), config.getBackupPort(), config.getBackupusername(), config.getBackuppassword(), config.getBackuppath());
+			run.resetClient();
 			if(run.client.getConnectStatus()){
 				run.runPcs();
 			}else{
@@ -66,7 +65,12 @@ public class Run extends FileLog{
 			}
 		}
 	}
-
+	
+	private void resetClient(){
+		client = new BasicFtpClient(config.getIp(), config.getPort(), config.getUsername(), config.getPassword(), config.getPath());
+		backupClient = new BasicFtpClient(config.getBackupIP(), config.getBackupPort(), config.getBackupusername(), config.getBackuppassword(), config.getBackuppath());
+	}
+	
 	private void runPcs() throws Exception {
 		PcsDao pcsDao = ContextUtil.getContext().getBean("pcsDao", PcsDao.class);
 		String types = config.getTypes();
@@ -128,6 +132,7 @@ public class Run extends FileLog{
 
 	//发送pcs和备份pcs
 	private void writeFile(List<List<?>> list) throws Exception {
+		resetClient();
 		String filename ="no file Name";
 		
 		if(list!=null&&list.size()>0){

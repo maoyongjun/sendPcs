@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="org.foxconn.dao.PcsDao">
+
+	<resultMap type="String" id="file">
+		<result column="FileName" property="FileName" jdbcType="VARCHAR"
+			javaType="String" />
+	</resultMap>
+
+	<resultMap type="org.foxconn.entity.PcsResult"
+		id="testData">
+		<result column="writeline" property="writeline" jdbcType="VARCHAR"
+			javaType="String" />
+		<result column="ssn" property="ssn" jdbcType="VARCHAR"
+			javaType="String" />
+		<result column="shiporderno" property="shiporderno" jdbcType="VARCHAR"
+			javaType="String" />
+		<result column="custpartno" property="custpartno" jdbcType="VARCHAR"
+			javaType="String" />
+	</resultMap>
+	
+	<select id="findAll" parameterType="map" resultMap="file,testData"
+		statementType="CALLABLE">
+
+		{call
+		GenerateDataOfDatafeed_Seagate_main_pcs
+		(#{transType,mode=IN,jdbcType=VARCHAR}
+		)
+		}
+
+	</select>
+	<update id="updateSSNStatus" parameterType="map">
+		UPDATE mfworkstatus SET autoed=0
+		WHERE  sysserialno in (${'\''+sns+'\''})
+				OR sysserialno  IN (SELECT	SysSerialNo 
+									FROM	mfsysprodlink 
+									WHERE	ProductID in (${'\''+sns+'\''})
+									)
+	</update>
+
+</mapper>       
