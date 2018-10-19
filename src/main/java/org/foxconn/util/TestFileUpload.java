@@ -1,4 +1,4 @@
-package org.foxconn.ftpupload;
+package org.foxconn.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -17,12 +17,12 @@ import org.foxconn.config.Config;
 import org.foxconn.entity.PcsResult;
 import org.foxconn.sendPcs.Run;
 import org.foxconn.util.BasicFtpClient;
-import org.junit.Test;
+//import org.junit.Test;
 
 public class TestFileUpload {
 	private int count =50;
 	
-	@Test
+//	@Test
 	public void test2(){
 		BasicFtpClient client = new BasicFtpClient();
 		List<String> files = client.getFileList("");
@@ -33,7 +33,7 @@ public class TestFileUpload {
 			 if(msg.equals("")){
 				 msg = result;
 			 }else{
-				 System.out.println(file+":"+msg.equals(result));
+				 System.out.println(msg.equals(result));
 			 }
 			 
 		}
@@ -42,7 +42,7 @@ public class TestFileUpload {
 		client.closeServer();
 	}
 	
-	@Test
+//	@Test
 	public void test() throws Exception{
 		
 		CountDownLatch cdl = new CountDownLatch(count);
@@ -93,19 +93,19 @@ public class TestFileUpload {
 		
 		//并发上传100个文件。
 		File file = new File("测试文件.txt");
-		InputStream fis = new FileInputStream(file);
+		FileInputStream fis = new FileInputStream(file);
 //		byte[] bytes = new byte[fis.available()];
 //		fis.read(bytes);
 //		String msg = new String(bytes,"UTF-8");
 //		InputStream input = new ByteArrayInputStream(msg.toString().getBytes("UTF-8"));
-//		InputStream input = new InflaterInputStream(fis);
+		InputStream input = fis;
 		BasicFtpClient client = new BasicFtpClient();
-		 client.uploadFile(filename, fis);
+		 client.uploadFile(filename, input);
 		//校验文件内容是否完整
 		
 	}
 	
-	@Test
+//	@Test
 	public void uploadAndRename() throws IOException {
 		UUID  uuid = UUID.randomUUID();
 		String ip ="10.67.70.95";
@@ -132,7 +132,7 @@ public class TestFileUpload {
 		 System.out.println("rename flag"+flag);
 	}
 	
-	@Test
+//	@Test
 	public void testupload() throws Exception{
 		
 //		List<List<?>> list = new ArrayList<List<?>>();
@@ -155,6 +155,14 @@ public class TestFileUpload {
 //		}
 //		run.backupClient = new BasicFtpClient(config.getBackupIP(), config.getBackupPort(), config.getBackupusername(), config.getBackuppassword(), config.getBackuppath());
 		
+	}
+	public static void main(String[] args) {
+		TestFileUpload test = new TestFileUpload();
+		try {
+			test.test();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	

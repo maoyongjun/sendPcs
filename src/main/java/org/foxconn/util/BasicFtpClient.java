@@ -17,11 +17,11 @@ import org.apache.http.ParseException;
 public class BasicFtpClient extends FileLog{
 	private FTPClient ftpClient; 
 	private String fileName, strencoding; 
-	private String ip = "192.168.43.72";        // 服务器IP地址 
-	private String userName = "share";        // 用户名 
-	private String userPwd = "1234";        // 密码 
+	private String ip = "10.67.49.9";        // 服务器IP地址 
+	private String userName = "Seagate";        // 用户名 
+	private String userPwd = "seagate";        // 密码 
 	private int port = 21;      // 端口号 
-	private String path = "/test";        // 读取文件的存放目录 
+	private String path = "/SFCPCS_BAK";        // 读取文件的存放目录 
 	private boolean connectStatus=false;
 	/** 
 	  * init ftp servere 
@@ -34,13 +34,13 @@ public class BasicFtpClient extends FileLog{
 	}
 	
 	public BasicFtpClient(String ip,int port,String userName,String userPwd,String path){
-		strencoding = "UTF-8"; 
+		strencoding = "GB2312"; 
 		connectStatus = this.connectServer(ip, port, userName, userPwd, path); 
 	}
 	public void init() { 
 	  // 以当前系统时间拼接文件名 
 	  fileName = "20131112114850793835861000010161141169.txt"; 
-	  strencoding = "UTF-8"; 
+	  strencoding = "GB2312"; 
 	  connectStatus = this.connectServer(ip, port, userName, userPwd, path); 
 	} 
 	 
@@ -193,6 +193,7 @@ public class BasicFtpClient extends FileLog{
 		} catch (IOException e) {
 			logError("close inputStream:"+e.getMessage());
 		}
+		System.out.println(storeFileSuccess);
 		return storeFileSuccess;
 	}
 	public boolean renameFile(String from,String to) throws IOException{

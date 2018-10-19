@@ -146,7 +146,7 @@
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>org.foxconn.sendPcs.Run</mainClass>
+							<mainClass>org.foxconn.util.TestFileUpload</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
